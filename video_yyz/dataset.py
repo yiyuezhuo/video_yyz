@@ -43,7 +43,10 @@ class VideoClipsFast(VideoClips):
             im = imageio.imread(p)
             im_list.append(im)
         
-        return torch.as_tensor(np.stack(im_list, 0))
+        video = torch.as_tensor(np.stack(im_list, 0))
+        audio = None
+        info = {}
+        return video, audio, info, video_idx
 
 
 class VideoDatasetFast(Kinetics400):
@@ -61,24 +64,19 @@ class VideoDatasetFast(Kinetics400):
 
     Other changes compared to Kinetics400:
         default extensions is replaced with mp4 from avi
+        force specifying frame_rate (None mode in Kinetics400 is not valid)
     '''
     def __init__(self, root, *, index_path, root_split, template,
-                 frames_per_clip, step_between_clips=1, frame_rate=None,
+                 frames_per_clip, step_between_clips=1, frame_rate,
                  extensions=('mp4',), transform=None, _precomputed_metadata=None,
-                 num_workers=1, _video_width=0, _video_height=0,
+                 num_workers=0, _video_width=0, _video_height=0,
                  _video_min_dimension=0, _audio_samples=0):
-        super().__init__(root)
+        # super().__init__(root)
 
         self.index_path = index_path
         self.root_split = root_split
         self.template = template
-
-        '''
-        classes = list(sorted(list_dir(root)))
-        class_to_idx = {classes[i]: i for i in range(len(classes))}
-        self.samples = make_dataset(self.root, class_to_idx, extensions, is_valid_file=None)
-        self.classes = classes
-        '''
+        
         with open(index_path) as f:
             index = json.load(f)
             classes = index['classes']

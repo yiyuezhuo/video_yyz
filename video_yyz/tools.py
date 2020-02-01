@@ -93,6 +93,8 @@ def generate_index(root, target_root=None, train_name='train.json', val_name='va
     if target_root is None:
         target_root = root
     root_path = Path(root)
+    target_root = Path(root)
+
     train_path = target_root / train_name
     val_path = target_root / val_name
     train_val_path = target_root / train_val_name
@@ -171,6 +173,8 @@ def resize_video(root, target_root, size, extension='mp4', verbose=True):
 #if __name__ == '__main__':
 # export some name for convenience
 SVD = ENV.get('SVD')  # steel_video_dataset
+if SVD is None:
+    print("Not set SVD")
 if SVD:
     SVD = Path(SVD)
     

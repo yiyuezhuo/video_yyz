@@ -7,6 +7,7 @@ import os
 import torch
 import numpy as np
 import math
+import warnings
 
 
 class VideoClipsFast(VideoClips):
@@ -189,7 +190,11 @@ class Kinetics400Indexed(VisionDataset):
         return self.video_clips.num_clips()
 
     def __getitem__(self, idx):
-        video, audio, info, video_idx = self.video_clips.get_clip(idx)
+        with warnings.catch_warnings():
+            # ignore UserWarning: The pts_unit 'pts' gives wrong results and 
+            # will be removed in a follow-up version. Please use pts_unit 'sec'.
+            warnings.simplefilter("ignore")
+            video, audio, info, video_idx = self.video_clips.get_clip(idx)
         label = self.samples[video_idx][1]
 
         if self.transform is not None:

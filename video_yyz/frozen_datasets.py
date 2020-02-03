@@ -1,5 +1,5 @@
 from .dataset import Kinetics400Indexed
-
+from pathlib import Path
 
 def _video_dataset_1(root, transform, index, 
                      frames_per_clip=16,
@@ -7,7 +7,7 @@ def _video_dataset_1(root, transform, index,
                      frame_rate=25):
     return Kinetics400Indexed(
         root,
-        index,
+        Path(root) / index,
         frames_per_clip=frames_per_clip,
         step_between_clips=step_between_clips,
         frame_rate=frame_rate,

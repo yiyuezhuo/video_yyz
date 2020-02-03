@@ -52,7 +52,9 @@ class SmoothedValue(object):
         self.count += n
         self.total += value * n
 
-        self.logger.update(self.name, value, n=n)
+        #  assert self.name != ''  # force to use TensorBoard
+        if self.name != '':  # Some SmoothedValue is not controlled by MetricLogger
+            self.logger.update(self.name, value, n=n)
 
     def synchronize_between_processes(self):
         """
@@ -117,8 +119,9 @@ class MockedDefaultDict(defaultdict):
         else:
             name = f'{self.group}/{key}'
         
-        self.__dict__[key].name = name
-        self.__dict__[key].logger = self.logger
+        self[key].name = name
+        self[key].logger = self.logger
+        # import pdb; pdb.set_trace()
 
 class MetricLogger(object):
 

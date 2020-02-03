@@ -2,8 +2,9 @@
 It is necessary to wrap model "constructor" to change `pretrained` logic. 
 '''
 
-from torchvision.models import video, load_state_dict_from_url
-from torchvision.models.resnet import model_urls
+from torchvision.models import video
+from torchvision.models.utils import load_state_dict_from_url
+from torchvision.models.video.resnet import model_urls
 
 
 def r2plus1d_18(*, num_classes, pretrained=False, progress=True, **kwargs):

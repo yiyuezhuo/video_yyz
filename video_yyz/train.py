@@ -4,17 +4,40 @@ YYZ video training
 data path is specified by environ variable.
 For train_video_dataset_1
 '''
+# Place logic here to raise Exception asap.
 from os import environ
 
 def _get_env(env_name):
     value = environ.get(env_name, None)
     if value is None:
-        print(f"Set {value} env before running this script")
+        print(f"Set {env_name} env before running this script")
         exit()
     return value
 
 train_data = _get_env("TRAIN_DATA")
 test_data = _get_env("TEST_DATA")
+
+print(f"TRAIN_DATA={train_data}")
+print(f"TEST_DATA={test_data}")
+
+import argparse
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--train", help="train data pipeline, expect (dataset, transform, collate, dataloader)", nargs=4, required=True)
+parser.add_argument("--test", help="val data pipeline", nargs=4, required=True)
+parser.add_argument("--model", required=True)
+parser.add_argument("--optimizer", required=True)
+parser.add_argument("--scheduler", required=True)
+parser.add_argument("--num-epoch", type=int, required=True)
+parser.add_argument("--device", default="cuda")
+parser.add_argument("--resume", default='')
+parser.add_argument("--start-epoch", default=0, type=int)
+parser.add_argument('--output-dir', default='.', help='path where to save')
+parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
+parser.add_argument('--tensorboard-comment', default='', help='suffix appended to tensorboard folder')
+parser.add_argument('--debug', action='store_true', help="exit before training")
+
+args = parser.parse_args()
 
 import torch
 import torchvision
@@ -30,29 +53,14 @@ from .train_utils import train_one_epoch, evaluate
 import os
 import time
 import datetime
-import argparse
+from tqdm import tqdm
 
 from torch.utils.tensorboard import SummaryWriter
-
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--train", help="train data pipeline, expect (dataset, transform, collate, dataloader)", nargs=4)
-parser.add_argument("--test", help="val data pipeline", nargs=4)
-parser.add_argument("--model")
-parser.add_argument("--optimizer")
-parser.add_argument("--num-epoch", type=int)
-parser.add_argument("--device", default="cuda")
-parser.add_argument("--resume", default='')
-parser.add_argument("--start-epoch", default=0, type=int)
-parser.add_argument('--output-dir', default='.', help='path where to save')
-parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
-parser.add_argument('--tensorboard-comment', default='', help='suffix appended to tensorboard folder')
-
-
-args = parser.parse_args()
 
 print(args)
 print("torch version: ", torch.__version__)
 print("torchvision version: ", torchvision.__version__)
+print("torchvision video backend: ", torchvision.get_video_backend())
 
 device = torch.device(args.device)
 num_epoch = args.num_epoch
@@ -79,6 +87,9 @@ print("Loading training data")
 dataset_train, transform_train, collate_train, data_loader_train = _read_pipeline(train_data, *args.train)
 dataset_test, transform_test, collate_test, data_loader_test = _read_pipeline(test_data, *args.test)
 
+print("train dataset", dataset_train, len(dataset_train), len(data_loader_train))
+print("test dataset", dataset_test, len(dataset_test), len(data_loader_test))
+
 print("Creating model")
 model_builder = frozen_models.__dict__[args.model]
 model = model_builder()
@@ -87,7 +98,7 @@ model.to(device)
 criterion = nn.CrossEntropyLoss()
 
 optimizer_builder = frozen_optimizer.__dict__[args.optimizer]
-optimizer = optimizer_builder(model.paramters())
+optimizer = optimizer_builder(model.parameters())
 
 scheduler_builder = frozen_scheduler.__dict__[args.scheduler]
 scheduler = scheduler_builder(data_loader_train, optimizer)
@@ -108,9 +119,12 @@ print("Start TensorBoard")
 writer = SummaryWriter(comment=args.tensorboard_comment)
 logger = LightLogger(writer)
 
+if args.debug:
+    exit()
+
 print("Start training")
 start_time = time.time()
-for epoch in range(start_epoch, num_epoch):
+for epoch in tqdm(range(start_epoch, num_epoch)):
     train_one_epoch(model, criterion, optimizer, scheduler, data_loader_train,
                     device, epoch, print_freq, logger=logger)
     evaluate(model, criterion, data_loader_test, device=device, logger=logger)

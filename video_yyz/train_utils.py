@@ -10,7 +10,9 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
     metric_logger.add_meter('clips per sec', utils.SmoothedValue(window_size=10, fmt='{value:.3f}'))
 
     header = 'Epoch: [{}]'.format(epoch)
-    for video, target in metric_logger.log_every(data_loader, print_freq, header):
+    for batch in metric_logger.log_every(data_loader, print_freq, header):
+        video, target = batch['video'], batch['target']
+
         start_time = time.time()
         video, target = video.to(device), target.to(device)
         output = model(video)
@@ -26,6 +28,10 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
         metric_logger.meters['acc1'].update(acc1.item(), n=batch_size)
         metric_logger.meters['clips per sec'].update(batch_size / (time.time() - start_time))
         lr_scheduler.step()
+    
+    print(' * Train Clip Acc@1 {top1.global_avg:.3f}'
+          .format(top1=metric_logger.acc1))
+    metric_logger.meters['global avg acc1'].update(metric_logger.acc1.global_avg.item())
 
 
 def evaluate(model, criterion, data_loader, device, *, logger: utils.LightLogger):
@@ -33,7 +39,9 @@ def evaluate(model, criterion, data_loader, device, *, logger: utils.LightLogger
     metric_logger = utils.MetricLogger(delimiter="  ", group='test', logger=logger)
     header = 'Test:'
     with torch.no_grad():
-        for video, target in metric_logger.log_every(data_loader, 100, header):
+        for batch in metric_logger.log_every(data_loader, 100, header):
+            video, target = batch['video'], batch['target']
+            
             video = video.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True)
             output = model(video)
@@ -48,6 +56,7 @@ def evaluate(model, criterion, data_loader, device, *, logger: utils.LightLogger
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
 
-    print(' * Clip Acc@1 {top1.global_avg:.3f}'
+    print(' * Test Clip Acc@1 {top1.global_avg:.3f}'
           .format(top1=metric_logger.acc1))
+    metric_logger.meters['global avg acc1'].update(metric_logger.acc1.global_avg.item())
     return metric_logger.acc1.global_avg

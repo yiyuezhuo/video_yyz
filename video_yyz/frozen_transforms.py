@@ -37,3 +37,20 @@ def transform_test_1():
         normalize,
         T.CenterCrop((112, 112))
     ])
+
+def transform_test_1_left():
+    return torchvision.transforms.Compose([
+        T.ToFloatTensorInZeroOne(),
+        T.Resize((128, 228)),
+        normalize,
+        T.LeftCrop((112, 112))
+    ])
+
+def transform_test_1_right():
+    return torchvision.transforms.Compose([
+        T.ToFloatTensorInZeroOne(),
+        T.Resize((128, 228)),
+        normalize,
+        T.RightCrop((112, 112))
+    ])
+

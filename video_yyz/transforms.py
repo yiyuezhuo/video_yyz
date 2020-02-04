@@ -1,5 +1,6 @@
 import torch
 import random
+import numpy as np
 
 
 def crop(vid, i, j, h, w):
@@ -12,6 +13,26 @@ def center_crop(vid, output_size):
 
     i = int(round((h - th) / 2.))
     j = int(round((w - tw) / 2.))
+    return crop(vid, i, j, th, tw)
+
+
+def left_crop(vid, output_size):
+    h, w = vid.shape[-2:]
+    th, tw = output_size
+
+    i = int(round((h - th) / 2.))
+    j = 0
+    # j = int(round((w - tw) / 2.))
+    return crop(vid, i, j, th, tw)
+
+
+def right_crop(vid, output_size):
+    h, w = vid.shape[-2:]
+    th, tw = output_size
+
+    i = int(round((h - th) / 2.))
+    j = w-tw
+    # j = int(round((w - tw) / 2.))
     return crop(vid, i, j, th, tw)
 
 
@@ -81,6 +102,22 @@ class CenterCrop(object):
         return center_crop(vid, self.size)
 
 
+class LeftCrop(object):
+    def __init__(self, size):
+        self.size = size
+
+    def __call__(self, vid):
+        return left_crop(vid, self.size)
+
+
+class RightCrop(object):
+    def __init__(self, size):
+        self.size = size
+
+    def __call__(self, vid):
+        return right_crop(vid, self.size)
+
+
 class Resize(object):
     def __init__(self, size):
         self.size = size
@@ -120,3 +157,24 @@ class Pad(object):
 
     def __call__(self, vid):
         return pad(vid, self.padding, self.fill)
+
+
+def transform_optical_flow_raw(video):
+    '''
+    video: depth, height, width, channel
+    '''
+    import cv2
+    
+    flow_list = []
+    for i in range(len(video)-1):
+        _prev = cv2.cvtColor(np.array(video[i]), cv2.COLOR_RGB2GRAY)
+        _next = cv2.cvtColor(np.array(video[i+1]), cv2.COLOR_RGB2GRAY)
+        flow = cv2.calcOpticalFlowFarneback(_prev, _next, None,  0.5, 3, 15, 3, 5, 1.2, 0)  # (h,w,2)
+        c0 = flow[..., 0]
+        c1 = flow[..., 1]
+        #flow_list.append((c0 - c0.mean()) / c0.std())
+        #flow_list.append((c1 - c1.mean()) / c1.std())
+        flow_list.append(c0)
+        flow_list.append(c1)
+    flow_arr = np.stack(flow_list, 0)
+    return flow_arr

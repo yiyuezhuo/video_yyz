@@ -12,6 +12,7 @@ def _video_dataset_1(root, transform, index,
         step_between_clips=step_between_clips,
         frame_rate=frame_rate,
         transform=transform,
+        num_workers=0
     )
 
 def full_video_dataset_1(root, transform):

@@ -43,8 +43,9 @@ import torch
 import torchvision
 from torch import nn
 
-from . import frozen_datasets, frozen_transforms, frozen_collate, frozen_dataloader
-from . import frozen_models, frozen_optimizer, frozen_scheduler
+# from . import frozen_datasets, frozen_transforms, frozen_collate, frozen_dataloader
+# from . import frozen_models, frozen_optimizer, frozen_scheduler
+from .frozen_utils import get_pipeline, get_model, get_optimizer, get_scheduler
 
 from . import utils
 from .utils import LightLogger
@@ -68,8 +69,8 @@ print_freq = args.print_freq
 
 torch.backends.cudnn.benchmark = True
 
-
-def _read_pipeline(root, dataset_name, transform_name, collate_name, dataloader_name):
+'''
+def get_pipeline(root, dataset_name, transform_name, collate_name, dataloader_name):
     dataset_builder = frozen_datasets.__dict__[dataset_name]
     transform_builder = frozen_transforms.__dict__[transform_name]
     collate_builder = frozen_collate.__dict__[collate_name]
@@ -81,27 +82,37 @@ def _read_pipeline(root, dataset_name, transform_name, collate_name, dataloader_
     dataloader = dataloader_builder(dataset, collate)
 
     return dataset, transform, collate, dataloader
+'''
 
 print("Loading training data")
 
-dataset_train, transform_train, collate_train, data_loader_train = _read_pipeline(train_data, *args.train)
-dataset_test, transform_test, collate_test, data_loader_test = _read_pipeline(test_data, *args.test)
+dataset_train, transform_train, collate_train, data_loader_train = get_pipeline(train_data, *args.train)
+dataset_test, transform_test, collate_test, data_loader_test = get_pipeline(test_data, *args.test)
 
 print("train dataset", dataset_train, len(dataset_train), len(data_loader_train))
 print("test dataset", dataset_test, len(dataset_test), len(data_loader_test))
 
 print("Creating model")
+'''
 model_builder = frozen_models.__dict__[args.model]
 model = model_builder()
+'''
+model = get_model(args.model)
 model.to(device)
 
-criterion = nn.CrossEntropyLoss()
-
+'''
 optimizer_builder = frozen_optimizer.__dict__[args.optimizer]
 optimizer = optimizer_builder(model.parameters())
+'''
+optimizer = get_optimizer(args.optimizer, model.parameters())
 
+'''
 scheduler_builder = frozen_scheduler.__dict__[args.scheduler]
 scheduler = scheduler_builder(data_loader_train, optimizer)
+'''
+scheduler = get_scheduler(args.scheduler, data_loader_train, optimizer)
+
+criterion = nn.CrossEntropyLoss()
 
 start_epoch = args.start_epoch  # default: 0
 

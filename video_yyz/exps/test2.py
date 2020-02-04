@@ -14,3 +14,9 @@ sys.argv = [sys.argv[0]] + args_list
 print("sys.argv after", sys.argv)
 
 import video_yyz.train
+
+'''
+ * Clip Acc@1 84.539
+100%|█████████████████████████████████████████████████████████████████████| 30/30 [7:07:47<00:00, 855.59s/it]
+Training time 7:07:47
+'''

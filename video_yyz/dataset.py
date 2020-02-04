@@ -195,9 +195,10 @@ class Kinetics400Indexed(VisionDataset):
             # will be removed in a follow-up version. Please use pts_unit 'sec'.
             warnings.simplefilter("ignore")
             video, audio, info, video_idx = self.video_clips.get_clip(idx)
-        label = self.samples[video_idx][1]
+        target = self.samples[video_idx][1]
 
         if self.transform is not None:
             video = self.transform(video)
 
-        return video, audio, label
+        # return video, audio, label
+        return dict(video=video, audio=audio, target=target, video_idx=video_idx)

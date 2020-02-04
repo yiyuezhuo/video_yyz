@@ -1,0 +1,17 @@
+import sys
+
+args_list = [
+    '--train', 'train_video_dataset_1_rgb', 'transform_train_1', 'val2vl', 'video_random_2',
+    '--test', 'test_video_dataset_1_rgb', 'transform_test_1', 'val2vl', 'video_uniform_2',
+    '--model', 'resnet18_word_bag',
+    '--optimizer', 'sgd_1',
+    '--scheduler', 'scheduler_1',
+    '--num-epoch', "30",
+    '--tensorboard-comment', __file__
+]
+
+print("sys.argv before", sys.argv)
+sys.argv = [sys.argv[0]] + args_list
+print("sys.argv after", sys.argv)
+
+import video_yyz.train

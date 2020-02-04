@@ -161,10 +161,12 @@ class Pad(object):
 
 def transform_optical_flow_raw(video):
     '''
-    video: depth, height, width, channel
+    video: tensor, shape: (depth, height, width, channel)
+    =>
+    optical_flow_arr: tensor: ((depth-1)*2, 1, height, width) vs (channel, depth, height, width)
     '''
     import cv2
-    
+
     flow_list = []
     for i in range(len(video)-1):
         _prev = cv2.cvtColor(np.array(video[i]), cv2.COLOR_RGB2GRAY)
@@ -177,4 +179,4 @@ def transform_optical_flow_raw(video):
         flow_list.append(c0)
         flow_list.append(c1)
     flow_arr = np.stack(flow_list, 0)
-    return flow_arr
+    return torch.from_numpy(flow_arr).float().unsqueeze(1)

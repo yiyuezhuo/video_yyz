@@ -31,7 +31,7 @@ def train_one_epoch(model, criterion, optimizer, lr_scheduler, data_loader, devi
     
     print(' * Train Clip Acc@1 {top1.global_avg:.3f}'
           .format(top1=metric_logger.acc1))
-    metric_logger.meters['global avg acc1'].update(metric_logger.acc1.global_avg.item())
+    metric_logger.meters['global avg acc1'].update(metric_logger.acc1.global_avg)
 
 
 def evaluate(model, criterion, data_loader, device, *, logger: utils.LightLogger):
@@ -41,7 +41,7 @@ def evaluate(model, criterion, data_loader, device, *, logger: utils.LightLogger
     with torch.no_grad():
         for batch in metric_logger.log_every(data_loader, 100, header):
             video, target = batch['video'], batch['target']
-            
+
             video = video.to(device, non_blocking=True)
             target = target.to(device, non_blocking=True)
             output = model(video)
@@ -58,5 +58,5 @@ def evaluate(model, criterion, data_loader, device, *, logger: utils.LightLogger
 
     print(' * Test Clip Acc@1 {top1.global_avg:.3f}'
           .format(top1=metric_logger.acc1))
-    metric_logger.meters['global avg acc1'].update(metric_logger.acc1.global_avg.item())
+    metric_logger.meters['global avg acc1'].update(metric_logger.acc1.global_avg)
     return metric_logger.acc1.global_avg

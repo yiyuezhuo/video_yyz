@@ -31,10 +31,13 @@ parser.add_argument("--scheduler", required=True)
 parser.add_argument("--num-epoch", type=int, required=True)
 parser.add_argument("--device", default="cuda")
 parser.add_argument("--resume", default='')
+parser.add_argument("--reset-optimizer", action='store_true')
+parser.add_argument("--reset-scheduler", action='store_true')
 parser.add_argument("--start-epoch", default=0, type=int)
 parser.add_argument('--output-dir', default='.', help='path where to save')
 parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
 parser.add_argument('--tensorboard-comment', default='', help='suffix appended to tensorboard folder')
+parser.add_argument('--checkpoint-name', default='checkpoint.pth')
 parser.add_argument('--debug', action='store_true', help="exit before training")
 
 args = parser.parse_args()
@@ -69,20 +72,12 @@ print_freq = args.print_freq
 
 torch.backends.cudnn.benchmark = True
 
-'''
-def get_pipeline(root, dataset_name, transform_name, collate_name, dataloader_name):
-    dataset_builder = frozen_datasets.__dict__[dataset_name]
-    transform_builder = frozen_transforms.__dict__[transform_name]
-    collate_builder = frozen_collate.__dict__[collate_name]
-    dataloader_builder = frozen_dataloader.__dict__[dataloader_name]
 
-    transform = transform_builder()
-    dataset = dataset_builder(root, transform)
-    collate = collate_builder()
-    dataloader = dataloader_builder(dataset, collate)
+print("Creating model")
+model = get_model(args.model)
+model.to(device)
 
-    return dataset, transform, collate, dataloader
-'''
+optimizer = get_optimizer(args.optimizer, model.parameters())
 
 print("Loading training data")
 
@@ -92,27 +87,7 @@ dataset_test, transform_test, collate_test, data_loader_test = get_pipeline(test
 print("train dataset", dataset_train, len(dataset_train), len(data_loader_train))
 print("test dataset", dataset_test, len(dataset_test), len(data_loader_test))
 
-print("Creating model")
-'''
-model_builder = frozen_models.__dict__[args.model]
-model = model_builder()
-'''
-model = get_model(args.model)
-model.to(device)
-
-'''
-optimizer_builder = frozen_optimizer.__dict__[args.optimizer]
-optimizer = optimizer_builder(model.parameters())
-'''
-optimizer = get_optimizer(args.optimizer, model.parameters())
-
-'''
-scheduler_builder = frozen_scheduler.__dict__[args.scheduler]
-scheduler = scheduler_builder(data_loader_train, optimizer)
-'''
 scheduler = get_scheduler(args.scheduler, data_loader_train, optimizer)
-
-criterion = nn.CrossEntropyLoss()
 
 start_epoch = args.start_epoch  # default: 0
 
@@ -121,17 +96,21 @@ if args.resume:
     checkpoint = torch.load(args.resume, map_location='cpu')
 
     model.load_state_dict(checkpoint['model'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
-    scheduler.load_state_dict(checkpoint['lr_scheduler'])
+    if not args.reset_optimizer:
+        optimizer.load_state_dict(checkpoint['optimizer'])
+    if not args.reset_scheduler:
+        scheduler.load_state_dict(checkpoint['lr_scheduler'])
     
     start_epoch = checkpoint['epoch'] + 1
+
+if args.debug:
+    exit()
 
 print("Start TensorBoard")
 writer = SummaryWriter(comment=args.tensorboard_comment)
 logger = LightLogger(writer)
 
-if args.debug:
-    exit()
+criterion = nn.CrossEntropyLoss()
 
 print("Start training")
 start_time = time.time()
@@ -151,7 +130,7 @@ for epoch in tqdm(range(start_epoch, num_epoch)):
             os.path.join(args.output_dir, 'model_{}.pth'.format(epoch)))
         utils.save_on_master(
             checkpoint,
-            os.path.join(args.output_dir, 'checkpoint.pth'))
+            os.path.join(args.output_dir, args.checkpoint_name))
 
 total_time = time.time() - start_time
 total_time_str = str(datetime.timedelta(seconds=int(total_time)))

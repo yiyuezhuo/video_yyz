@@ -18,8 +18,40 @@ def _video_dataset_1(root, transform, index,
 def full_video_dataset_1(root, transform):
     return _video_dataset_1(root, transform, "train_val.json")
 
+
 def train_video_dataset_1(root, transform):
     return _video_dataset_1(root, transform, "train.json")
 
+
 def test_video_dataset_1(root, transform):
     return _video_dataset_1(root, transform, "val.json")
+
+
+def train_video_dataset_1_L5(root, transform):
+    # Used to generated L=5 optical stack feature
+    return _video_dataset_1(root, transform, "train.json", frames_per_clip=6)
+
+
+def test_video_dataset_1_L5(root, transform):
+    # Used to generated L=5 optical stack feature
+    return _video_dataset_1(root, transform, "val.json", frames_per_clip=6)
+
+
+def train_video_dataset_1_L1(root, transform):
+    # Used to generated L=1 optical stack feature
+    return _video_dataset_1(root, transform, "train.json", frames_per_clip=2)
+
+
+def test_video_dataset_1_L1(root, transform):
+    # Used to generated L=1 optical stack feature
+    return _video_dataset_1(root, transform, "val.json", frames_per_clip=2)
+
+
+def train_video_dataset_1_rgb(root, transform):
+    # used by word bag model
+    return _video_dataset_1(root, transform, "train.json", frames_per_clip=1)
+
+
+def test_video_dataset_1_rgb(root, transform):
+    # used by word bag model
+    return _video_dataset_1(root, transform, "val.json", frames_per_clip=1)

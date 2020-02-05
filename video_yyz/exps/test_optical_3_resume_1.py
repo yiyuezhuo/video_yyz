@@ -9,16 +9,14 @@ args_list = [
     '--model', 'resnet18_flat_L1',
     '--optimizer', 'sgd_1_slow',
     '--scheduler', 'scheduler_3',
-    '--num-epoch', "90",
+    '--num-epoch', "180",
     '--tensorboard-comment', name,
     '--checkpoint-name', name + '.pth',
+    '--resume', 'test_optical_3.pth',
+    '--reset-optimizer',
+    '--reset-scheduler',
 ]
 
 sys.argv = [sys.argv[0]] + args_list
 
 import video_yyz.train
-'''
- * Test Clip Acc@1 77.474
-100%|█████████████████████████████████████████████████████████████████████| 90/90 [2:51:02<00:00, 114.03s/it]
-Training time 2:51:02
-'''

@@ -120,7 +120,7 @@ def cnn_lstm(*, num_classes, pretrained=False, progress=True):
 
 
 def resnet18_word_bag(*, num_classes, pretrained=False, progress=True, **kwargs):
-    model = models.resnet18(pretrained=pretrained, progress=progress, num_classes=num_classes, **kwargs)
+    model = models.resnet18(pretrained=False, progress=progress, num_classes=num_classes, **kwargs)
     if pretrained:
         arch = 'resnet18'
         state_dict = load_state_dict_from_url(models.resnet.model_urls[arch],
@@ -130,4 +130,5 @@ def resnet18_word_bag(*, num_classes, pretrained=False, progress=True, **kwargs)
 
         incompatible_key = model.load_state_dict(state_dict, strict=False)
         assert set(incompatible_key.missing_keys) == set(['fc.weight', 'fc.bias'])
+    model = FlatModel(model)
     return model

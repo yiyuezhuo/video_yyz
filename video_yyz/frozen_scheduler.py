@@ -30,7 +30,7 @@ def scheduler_2(data_loader, optimizer):
 
 
 def scheduler_3(data_loader, optimizer):
-    step_size_epoch = 100
-    step_size = 100 * len(data_loader)  # a large value
+    step_size_epoch = 1000 
+    step_size = step_size_epoch * len(data_loader)  # a large value
     gamma = 0.1
     return StepLR(optimizer, step_size=step_size, gamma=gamma)

@@ -6,7 +6,7 @@ I wrote this framework for a steel mill project. I don't spend one second search
 
 ### Style
 
-While `train.py` provide a CLI style interface, I found this style, also appearing in `torchvision`, is hard to understand and maintain. So I force user to add a function, called "frozen config", in `frozen_xyz` and used its name in `train.py`.
+While `train.py` provides a CLI style interface, I found this style, also appearing in `torchvision`, is hard to understand and maintain. So I force users to add a function, called "frozen config", in `frozen_xyz` and use its name in `train.py`.
 
 For example, you can see following content in `frozen_models.py`:
 
@@ -17,7 +17,7 @@ def cnn_lstm_1():
 
 You can use `--model cnn_lstm_1` to point to it in `train.py`.
 
-In other hand, I still feel very annoying to edit a pure text CLI command. So I suggest to use "frozen" commands like following:
+On the other hand, I still feel very annoyed to edit a pure text CLI command. So I suggest to use "frozen" commands like following:
 
 ```
 python -m video_yyz.exps.test_word_bag_1
@@ -51,10 +51,9 @@ import video_yyz.train
 
 While some weird hack is used to call a CLI script by importing, the further wrapping is not used to keep its simplicity.
 
-So you can edit a script on your local, push it to server, and typing just a script name, rather than copy & paste something like `python train.py --a b --c d --e g ....`.
+So you can edit a script on your local, push it to the server, and type just a script name, rather than copy & paste something like `python train.py --a b --c d --e g ....`.
 
-
-To reduce loading time, someone may use `ffmpeg` to split video into frames in advance. But I found that it may not be that effectively, compared to `torchvision`'s method (decode frame from video dynamically). See following table:
+To reduce loading time, someone may use `ffmpeg` to split video into frames in advance. But I found that it may not be that effective, compared to `torchvision`'s method (decode frame from video dynamically). See following table:
 
 ```
 resolution  load    speedup
@@ -98,9 +97,9 @@ python video_yyz.fast resize_free
 
 This script will resize video using ffmpeg and save them into `SVD/video_sample_free` folder.
 
-(A split cache folder containing `*.jpg` is created as well, you can use `dataset.VideoDatasetFast` to leverage the "fast" version, though it's not fast enough to let me to use it. So you can prevent splitting by commenting out `split_video` to save some disk space).
+(A split cache folder containing `*.jpg` is created as well, you can use `dataset.VideoDatasetFast` to leverage the "fast" version, though it's not fast enough to let me use it. So you can prevent splitting by commenting out `split_video` to save some disk space).
 
-Add `video_yyz` package into your `PYTHONPATH`, which is best practice when the package is still actively developed. Don't bother to a `setup.py` to add it to `site-packages`.  
+Add the `video_yyz` package into your `PYTHONPATH`, which is best practice when the package is still actively developed. Don't bother to `setup.py` to add it to `site-packages`.  
 
 #### Install TensorBoard
 
@@ -115,7 +114,7 @@ export TRAIN_DATA=$SVD/video_sample_free
 export TEST_DATA=$SVD/video_sample_free
 ```
 
-Most of scripts in `exps` denote a "experiment", you run one by something like:
+Most of scripts in `exps` denote a "experiment", you can run one by something like:
 
 ```shell
 python -m video_yyz.exps.test_word_bag_1
@@ -127,7 +126,7 @@ By using this style, you can call `%debug` using IPython to debug. like:
 ipython -i -m video_yyz.exps.test_optical_3_resume_1
 ```
 
-Checkpoints and TensorBoard log will be stored in current directory with default setting. Start `TensorBoard` using
+Checkpoints and TensorBoard logs will be stored in the current directory with default settings. Start `TensorBoard` using
 
 ```shell
 tensorboard --logdir runs --port 8965
@@ -137,7 +136,7 @@ Then you can access it by `http://your_host:8965` from remote.
 
 ## Results
 
-`notebook_utils` provide some helper to evaluate in notebook. Such as following ensemble results:
+`notebook_utils` provide some helpers to evaluate in a notebook. Such as following ensemble results:
 
 <table border="1" class="dataframe">
   <thead>
@@ -244,7 +243,13 @@ Then you can access it by `http://your_host:8965` from remote.
 
 <!-- Export this table using `print(df_sorted.to_html())`), greet formating tool pandas! (pandas: ??? -->
 
-Two stream itself is a ensemble including RGB(`resnet18_word_bag`) and L=5 optical flow model (`resnet18_flat_L5`). `cnn_lstm_1` is a CNN+LSTM example. `r2plus1d_18_1` is a 3d-CNN implementation brought from `torchvision`.
+Two streams model itself is an ensemble including RGB(`resnet18_word_bag`) and L=5 optical flow model (`resnet18_flat_L5`). `cnn_lstm_1` is a CNN+LSTM example. `r2plus1d_18_1` is a 3d-CNN implementation brought from `torchvision`.
+
+The result is from an average of 100 uniform clip samples prediction results from 10s video. A 75% "acc (frame)" can make up a 85% "acc (video)" as shown in [notebook](https://gist.github.com/yiyuezhuo/29d227880473183a090dc77022706fe8). "acc (adjusted)" is obtained by reassigning some low belief "normal" result as "abnormal", which prefer more "abnormal" prediction but usually make acc lower.
+
+More improvement may be achieved by ensemble with transforms `LeftCrop`, `RightCrop` other than just `CenterCrop`.
+
+It is worth noting that optical-flow models take longer time to train to achieve comparable performance compared to other (you can see some `resume` scripts for optical flow to increase training time). And `L=5` is not significantly greater than `L=1`. Just use TensorBoard to track these phenomenons.
 
 `markov.py` can be used to predict at any time (any model running time) using a Markov Process.
 

@@ -8,7 +8,7 @@ I wrote this framework for a steel mill project. I don't spend one second search
 
 While `train.py` provide a CLI style interface, I found this style, also appearing in `torchvision`, is hard to understand and maintain. So I force user to add a function, called "frozen config", in `frozen_xyz` and used its name in `train.py`.
 
-For example, you can following content in `frozen_models.py`:
+For example, you can see following content in `frozen_models.py`:
 
 ```python
 def cnn_lstm_1():
@@ -17,7 +17,7 @@ def cnn_lstm_1():
 
 You can use `--model cnn_lstm_1` to point to it in `train.py`.
 
-In other hand, I still feel very annoying to edit a pure text CLI command. So I suggest use "frozen" commands like following:
+In other hand, I still feel very annoying to edit a pure text CLI command. So I suggest to use "frozen" commands like following:
 
 ```
 python -m video_yyz.exps.test_word_bag_1
@@ -98,7 +98,7 @@ python video_yyz.fast resize_free
 
 This script will resize video using ffmpeg and save them into `SVD/video_sample_free` folder.
 
-(A split cache folder is created as well, you can use `dataset.VideoDatasetFast` to use the "fast" version, though it's not fast enough to let me to use it. So you can prevent splitting by commenting out `split_video` to save some disk space).
+(A split cache folder containing `*.jpg` is created as well, you can use `dataset.VideoDatasetFast` to leverage the "fast" version, though it's not fast enough to let me to use it. So you can prevent splitting by commenting out `split_video` to save some disk space).
 
 Add `video_yyz` package into your `PYTHONPATH`, which is best practice when the package is still actively developed. Don't bother to a `setup.py` to add it to `site-packages`.  
 
@@ -127,15 +127,17 @@ By using this style, you can call `%debug` using IPython to debug. like:
 ipython -i -m video_yyz.exps.test_optical_3_resume_1
 ```
 
-Checkpoints and TensorBoard log will be stored in current directory default. Start `TensorBoard` using
+Checkpoints and TensorBoard log will be stored in current directory with default setting. Start `TensorBoard` using
 
 ```shell
 tensorboard --logdir runs --port 8965
 ```
 
+Then you can access it by `http://your_host:8965` from remote. 
+
 ## Results
 
-`notebook_utils` provide some helper to evaluate in notebook.
+`notebook_utils` provide some helper to evaluate in notebook. Such as following ensemble results:
 
 <table border="1" class="dataframe">
   <thead>
@@ -240,6 +242,9 @@ tensorboard --logdir runs --port 8965
   </tbody>
 </table>
 
+<!-- Export this table using `print(df_sorted.to_html())`), greet formating tool pandas! (pandas: ??? -->
+
+Two stream itself is a ensemble including RGB(`resnet18_word_bag`) and L=5 optical flow model (`resnet18_flat_L5`). `cnn_lstm_1` is a CNN+LSTM example. `r2plus1d_18_1` is a 3d-CNN implementation brought from `torchvision`.
 
 `markov.py` can be used to predict at any time (any model running time) using a Markov Process.
 

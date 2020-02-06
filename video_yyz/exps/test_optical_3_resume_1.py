@@ -20,3 +20,8 @@ args_list = [
 sys.argv = [sys.argv[0]] + args_list
 
 import video_yyz.train
+'''
+ * Test Clip Acc@1 78.842
+100%|█████████████████████████████████████████████████████████████████████| 90/90 [2:52:25<00:00, 114.95s/it]
+Training time 2:52:25
+'''

@@ -87,19 +87,34 @@ SVD
             ...
 ```
 
-`SVD` is an environment variable to denote dataset root. Use soft link to prevent  moving too many files.
+`SVD` is an environment variable to denote dataset root. Use symbol link to prevent  moving too many files.
+
+#### Add package into `PYTHONPATH`
+
+Add the `video_yyz` package into your `PYTHONPATH`, which is best practice when the package is still actively developed. Don't bother to `setup.py` to add it to `site-packages`.  
+
+#### Generate index
+
+Enter interactive `tool`. 
+
+```shell
+ipython -im video_yyz.tools
+```
+
+```python
+>>> generate_index(your_root)
+```
 
 #### Resize video to speed up loading
 
 ```shell
-python video_yyz.fast resize_free
+python -m video_yyz.fast.resize_free
 ```
 
 This script will resize video using ffmpeg and save them into `SVD/video_sample_free` folder.
 
 (A split cache folder containing `*.jpg` is created as well, you can use `dataset.VideoDatasetFast` to leverage the "fast" version, though it's not fast enough to let me use it. So you can prevent splitting by commenting out `split_video` to save some disk space).
 
-Add the `video_yyz` package into your `PYTHONPATH`, which is best practice when the package is still actively developed. Don't bother to `setup.py` to add it to `site-packages`.  
 
 #### Install TensorBoard
 
@@ -119,6 +134,8 @@ Most of scripts in `exps` denote a "experiment", you can run one by something li
 ```shell
 python -m video_yyz.exps.test_word_bag_1
 ```
+
+Thw working directory will store your checkpoints and TensorBoard log.
 
 By using this style, you can call `%debug` using IPython to debug. like:
 
@@ -256,4 +273,9 @@ It is worth noting that optical-flow models take longer time to train to achieve
 <img src="https://pbs.twimg.com/media/EQEr3ZiUcAAIVhB?format=png&name=small">
 <img src="https://pbs.twimg.com/media/EQEr3ZjUwAAsp8D?format=png&name=small">
 
+## Change log
 
+### 2/22/2020
+
+* Fixed wrong `readme.md` description.
+* Replace glob pattern `**/*.mp4` with `*/*.mp4` so symbol links works.

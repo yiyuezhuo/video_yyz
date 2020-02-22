@@ -53,7 +53,8 @@ def split_video(root, target_root, template, verbose=True):
 def collect_index(root, extension='mp4'):
     root_path = Path(root)
 
-    glob_pattern = f'**/*.{extension}'
+    # glob_pattern = f'**/*.{extension}'  # don't work if symbol link is used
+    glob_pattern = f'*/*.{extension}'  # further assume data structure
 
     label_list = []
     r_path_list = []
@@ -159,7 +160,8 @@ def resize_video(root, target_root, size, extension='mp4', verbose=True):
 
     scale = f'scale={size[0]}:{size[1]}'
 
-    for path in root_path.glob(f'**/*.{extension}'):
+    # for path in root_path.glob(f'**/*.{extension}'):
+    for path in root_path.glob(f'*/*.{extension}'):
         r_path = path.relative_to(root_path)
         target_path = target_root_path / r_path
 

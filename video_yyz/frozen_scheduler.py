@@ -30,7 +30,22 @@ def scheduler_2(data_loader, optimizer):
 
 
 def scheduler_3(data_loader, optimizer):
+    # fake constant lr "scheduler"
     step_size_epoch = 1000 
     step_size = step_size_epoch * len(data_loader)  # a large value
     gamma = 0.1
     return StepLR(optimizer, step_size=step_size, gamma=gamma)
+
+
+def scheduler_4(data_loader, optimizer):
+    lr_warmup_epochs = 4
+    lr_milestones = [5]
+    lr_gamma = 0.1
+    warmup_factor = 1e-5
+
+    warmup_iters = lr_warmup_epochs * len(data_loader)
+    lr_milestones = [len(data_loader) * m for m in lr_milestones]
+    lr_scheduler = WarmupMultiStepLR(
+        optimizer, milestones=lr_milestones, gamma=lr_gamma,
+        warmup_iters=warmup_iters, warmup_factor=warmup_factor)
+    return lr_scheduler

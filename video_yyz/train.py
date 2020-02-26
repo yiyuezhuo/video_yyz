@@ -17,8 +17,10 @@ def _get_env(env_name):
 train_data = _get_env("TRAIN_DATA")
 test_data = _get_env("TEST_DATA")
 
+print('')
 print(f"TRAIN_DATA={train_data}")
 print(f"TEST_DATA={test_data}")
+print('')
 
 import argparse
 
@@ -38,6 +40,7 @@ parser.add_argument('--output-dir', default='.', help='path where to save')
 parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
 parser.add_argument('--tensorboard-comment', default='', help='suffix appended to tensorboard folder')
 parser.add_argument('--checkpoint-name', default='checkpoint.pth')
+parser.add_argument('--disable-dist', action='store_true')
 parser.add_argument('--debug', action='store_true', help="exit before training")
 
 args = parser.parse_args()
@@ -76,6 +79,13 @@ torch.backends.cudnn.benchmark = True
 print("Creating model")
 model = get_model(args.model)
 model.to(device)
+count_gpu = torch.cuda.device_count()
+if count_gpu > 1:
+    if args.disable_dist:
+        print(f"{count_gpu} GPUs detected, but distribute is disabled")
+    else:
+        print(f"use {count_gpu} GPUs to train.")
+        model = nn.DataParallel(model)
 
 optimizer = get_optimizer(args.optimizer, model.parameters())
 

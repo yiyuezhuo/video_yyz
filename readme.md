@@ -87,7 +87,13 @@ SVD
             ...
 ```
 
-`SVD` is an environment variable to denote dataset root. Use symbol link to prevent  moving too many files.
+`SVD` is an environment variable to denote dataset root. Use symbol link to prevent  moving too many files. Use something like 
+
+```shell
+export SVD=/your/SVD/path
+``` 
+
+to specify it.
 
 #### Add package into `PYTHONPATH`
 
@@ -101,9 +107,13 @@ Enter interactive `tool`.
 ipython -im video_yyz.tools
 ```
 
+Call a tool function:
+
 ```python
->>> generate_index(your_root)
+>>> generate_index(video_sample_path)
 ```
+
+You can check other tool functions in `video_yyz/tools.py`.
 
 #### Resize video to speed up loading
 
@@ -115,10 +125,15 @@ This script will resize video using ffmpeg and save them into `SVD/video_sample_
 
 (A split cache folder containing `*.jpg` is created as well, you can use `dataset.VideoDatasetFast` to leverage the "fast" version, though it's not fast enough to let me use it. So you can prevent splitting by commenting out `split_video` to save some disk space).
 
-
 #### Install TensorBoard
 
-Install TensorBoard. It's *not* optional, since it's such amazing.
+Install TensorBoard. It's *mandatory*, since it's such amazing. `tqdm`, `pyav` is required as well.
+
+```shell
+pip install tensorboard
+pip install tqdm
+conda install av -c conda-forge
+```
 
 ### Train
 
@@ -146,7 +161,7 @@ ipython -i -m video_yyz.exps.test_optical_3_resume_1
 Checkpoints and TensorBoard logs will be stored in the current directory with default settings. Start `TensorBoard` using
 
 ```shell
-tensorboard --logdir runs --port 8965
+tensorboard --logdir runs --port 8965 --host 0.0.0.0
 ```
 
 Then you can access it by `http://your_host:8965` from remote. 
@@ -273,9 +288,42 @@ It is worth noting that optical-flow models take longer time to train to achieve
 <img src="https://pbs.twimg.com/media/EQEr3ZiUcAAIVhB?format=png&name=small">
 <img src="https://pbs.twimg.com/media/EQEr3ZjUwAAsp8D?format=png&name=small">
 
+## Tips for my colleagues
+
+### Use SSH Remote Tunnel "share" internet to server
+
+Start a http proxy (eg: on 127.0.0.1:6002) in your bastion host which is able to connect to the internet. I used `v2ray` since I'm familiar with it.
+
+Start a SSH remote tunnel like:
+
+```shell
+ssh -R 6002:127.0.0.1:6002 ubuntu@10.15.86.54
+```
+
+set http proxy on server
+
+```shell
+export http_proxy=http://127.0.0.1:6002/
+export https_proxy=http://127.0.0.1:6002/
+```
+
+Most programs in that terminal should work (such as pytorch pretraining model download, `pip` and `conda`), but few, such as `apt`, require extra work. Google is your best friend.
+
+### Frozen code
+
+Modifying any "frozen" code which is used by at least an `exp` is not recommended. You should add a new code in `fronzen_*.py` file and add a new experiment file in `exps`.
+
+Top commend should give summary of this experiment and bottom comment should give a quick result summary.
+
+Use `diff` to compare two `exps` files.
+
 ## Change log
 
 ### 2/22/2020
 
 * Fixed wrong `readme.md` description.
 * Replace glob pattern `**/*.mp4` with `*/*.mp4` so symbol links works.
+
+### 2/26/2020
+
+* Add multi-gpu support. (EMM, just kidding)

@@ -23,6 +23,7 @@ from pathlib import Path
 import json
 import random
 from collections import Counter
+import shutil
 
 
 def split_video(root, target_root, template, verbose=True):
@@ -170,6 +171,138 @@ def resize_video(root, target_root, size, extension='mp4', verbose=True):
 
         if verbose:
             print(f'{path} -> {target_path}')
+
+
+def merge_dataset(root1, root2, target_root, extension='mp4'):
+    '''
+    Require Administrator in Windows, what sad!
+    Assumed file structure:
+        root1
+            train.json
+            ...
+            dry
+                1.mp4
+                ...
+            melt
+                ...
+            normal
+                ...
+        root2
+            ...
+        
+        ->
+        target_root
+            train.json (merged)
+            ...
+            dry
+                1.mp4
+            ...
+    '''
+    root1 = Path(root1)
+    root2 = Path(root2)
+    target_root = Path(target_root)
+    print("root1:", root1)
+    print("root2:", root2)
+    print("target_root:", target_root)
+
+    target_root.mkdir(parents=True, exist_ok=True)
+
+    for name in ['train.json', 'val.json', 'train_val.json']:
+        with (root1 / name).open() as f:
+            dat1 = json.load(f)
+        with (root2 / name).open() as f:
+            dat2 = json.load(f)
+        
+        assert dat1['classes'] == dat2['classes']
+
+        sam1 = map(tuple, dat1['samples'])
+        sam2 = map(tuple, dat2['samples'])
+        set_sam1 = set(sam1)
+        set_sam2 = set(sam2)
+        set_sam1_sam2 = set_sam1 | set_sam2
+        sam_merged = sorted(list(set_sam1_sam2))
+        dup = len(set_sam1) + len(set_sam2) - len(set_sam1_sam2)
+        print('# sam1:', len(set_sam1), "# sam2:", len(set_sam2))
+        print("# merged:", len(sam_merged), "# duplicated:", dup)
+        if dup > 0:
+            ex = next(iter(set_sam1 & set_sam2))
+            print("Duplicate example:", ex)
+        
+        with (target_root / name).open('w') as f:
+            merged = dict(classes=dat1['classes'], samples=sam_merged)
+            json.dump(merged, f)
+    
+    skip_count = 0
+    link_count = 0
+    for root in [root1, root2]:
+        for p in root.glob(f"*/*.{extension}"):
+            target_path = target_root / p.relative_to(root)
+            if target_path.exists():
+                print("Skip existed", target_path)
+                skip_count += 1
+                continue
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            #p.symlink_to(target_path)
+            target_path.symlink_to(p)
+            link_count += 1
+    print("Linked:", link_count, "Skip:", skip_count)
+
+
+def clone_dataset(root, target_root):
+    '''
+    symbol link all folder, and copy all json files to target_root
+    '''
+    root_path = Path(root)
+    target_root_path = Path(target_root)
+    root_path = root_path.absolute()
+    target_root_path = target_root_path.absolute()
+
+    target_root_path.mkdir(parents=True, exist_ok=True)
+
+    for json_path in root_path.glob("*.json"):
+        target_json_path = target_root_path / json_path.relative_to(root_path)
+        shutil.copy(json_path, target_json_path)
+        print(f"Copied {json_path} -> {target_json_path}")
+    for p in root_path.iterdir():
+        if p.is_dir():
+            p = p.absolute()
+            target_dir_path = target_root_path / p.relative_to(root_path)
+            target_dir_path.symlink_to(p)
+            print(f"Made symbolink {target_dir_path} -> {p}")
+    # Yes, the "->" is reversed, traditionally.
+
+
+def shuffle_dataset(root):
+    '''
+    Shuffle label only.
+    Used to check whether model alway overfit, even under unreasonble random shuffle.
+    '''
+    root_path = Path(root)
+    with (root_path / "train_val.json").open() as f:
+        train_val = json.load(f)
+    path_list, label_list = zip(*train_val['samples'])
+    label_list = list(label_list)  # tuple -> list
+    random.shuffle(label_list)
+    path_to_label = {p: l for p, l in zip(path_list, label_list)}
+    with (root_path / "train_val.json").open('w') as f:
+        new_train_val = {
+            'classes': train_val['classes'],
+            'samples': list(zip(path_list, label_list))
+        }
+        json.dump(new_train_val, f)
+
+    for name in ['train.json', 'val.json']:
+        with (root_path / name).open() as f:
+            dat = json.load(f)
+        path_list, label_list = zip(*dat['samples'])
+        label_list = [path_to_label[p] for p in path_list]
+        with (root_path / name).open('w') as f:
+            new_dat = {
+                'classes': dat['classes'],
+                'samples': list(zip(path_list, label_list))
+            }
+            json.dump(new_dat, f)
+    #import pdb;pdb.set_trace()
 
 
 #if __name__ == '__main__':

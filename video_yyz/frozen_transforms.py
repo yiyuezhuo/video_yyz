@@ -80,3 +80,44 @@ def transform_test_optical_flow():
 
 def transform_identity():
     return Compose([])
+
+
+'''
+Remove random crop to make "global" training easier, while suffer from overfitting.
+'''
+def transform_train_2():
+    return Compose([
+        T.ToFloatTensorInZeroOne(),
+        T.Resize((128, 228)),
+        #T.RandomHorizontalFlip(),
+        normalize,
+        #T.RandomCrop((112, 112))
+    ])
+
+
+def transform_test_2():
+    return Compose([
+        T.ToFloatTensorInZeroOne(),
+        T.Resize((128, 228)),
+        normalize,
+        #T.CenterCrop((112, 112))
+    ])
+
+
+def transform_train_3():
+    return Compose([
+        T.ToFloatTensorInZeroOne(),
+        T.Resize((128, 228)),
+        T.RandomHorizontalFlip(),
+        normalize,
+        T.RandomCrop((112, 160))
+    ])
+
+
+def transform_test_3():
+    return Compose([
+        T.ToFloatTensorInZeroOne(),
+        T.Resize((128, 228)),
+        normalize,
+        T.CenterCrop((112, 160))
+    ])

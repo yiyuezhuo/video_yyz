@@ -275,7 +275,7 @@ def clone_dataset(root, target_root):
 def shuffle_dataset(root):
     '''
     Shuffle label only.
-    Used to check whether model alway overfit, even under unreasonble random shuffle.
+    Used to check whether model alway overfit, even under unreasonable random shuffle.
     '''
     root_path = Path(root)
     with (root_path / "train_val.json").open() as f:
@@ -302,7 +302,63 @@ def shuffle_dataset(root):
                 'samples': list(zip(path_list, label_list))
             }
             json.dump(new_dat, f)
-    #import pdb;pdb.set_trace()
+
+
+def split_SVD(SVD_root, target_SVD_root_le, target_SVD_root_ge, cutoff, 
+              mtime_sub_dir='video_sample',
+              mapped_sub_dir='video_sample_free',
+              verbose=True):
+    '''
+    Split a SVD dataset into two datasets according to last modified time (mtime).
+    Example:
+        split_SVD('/home/yiyuezhuo/windows/d/datasets/stove2/SVD_dummy_4',
+                '/home/yiyuezhuo/windows/d/datasets/stove2/SVD_dummy_4_le',
+                '/home/yiyuezhuo/windows/d/datasets/stove2/SVD_dummy_4_ge',
+                1.57876330e+09)
+    '''
+    import numpy as np
+    SVD_root = Path(SVD_root)
+    mtime_root = SVD_root / mtime_sub_dir
+    map_root = SVD_root / mapped_sub_dir
+    
+    mtime_dict = {}
+    mtime_list = []
+    for p in mtime_root.glob("*/*.mp4"):
+        mtime = p.stat().st_mtime
+        mtime_dict[str(p.relative_to(mtime_root))] = mtime
+        mtime_list.append(mtime)
+        
+    mtime_arr = np.array(mtime_list)
+    print(f"Left (le): {sum(mtime_arr < cutoff)} Right (ge): {sum(mtime_arr >= cutoff)}")
+    
+    for target_SVD_root, is_le in zip([target_SVD_root_le, target_SVD_root_ge], [True, False]):
+        target_SVD_root = Path(target_SVD_root)
+        out_root = target_SVD_root / mapped_sub_dir
+        
+        if out_root.exists():
+            shutil.rmtree(out_root)
+        out_root.mkdir(parents=True)
+    
+        for target in map_root.iterdir():
+            if target.suffix == '.json':
+                with open(target) as f:
+                    index = json.load(f)
+                index_new = {"classes": index["classes"]}
+                if is_le:
+                    samples = [s for s in index['samples'] if mtime_dict[s[0]] < cutoff]
+                else:
+                    samples = [s for s in index['samples'] if mtime_dict[s[0]] >= cutoff]
+                index_new['samples'] = samples
+                out_p = out_root / target.name
+                with open(out_p, 'w') as f:
+                    json.dump(index_new, f)
+                if verbose:
+                    print(f"Created {out_p}")
+            else:
+                new_p = out_root / target.name
+                new_p.symlink_to(target.absolute(), target_is_directory=True)
+                if verbose:
+                    print(f"{new_p} symlink_to {target}")
 
 
 #if __name__ == '__main__':

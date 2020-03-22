@@ -19,3 +19,7 @@ def cnn_lstm_1():
 
 def resnet18_word_bag():
     return models.resnet18_word_bag(num_classes=3, pretrained=True)
+
+
+def resnet18_word_bag_2():
+    return models.resnet18_word_bag(num_classes=4, pretrained=True)

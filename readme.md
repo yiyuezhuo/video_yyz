@@ -113,6 +113,8 @@ Call a tool function:
 >>> generate_index(video_sample_path)
 ```
 
+`video_sample_path` is of the form `SVD/video_sample`. You can `cd` into `video_sample` and start REPL then `generate_index(".")`.
+
 You can check other tool functions in `video_yyz/tools.py`.
 
 #### Resize video to speed up loading
@@ -125,9 +127,9 @@ This script will resize video using ffmpeg and save them into `SVD/video_sample_
 
 (A split cache folder containing `*.jpg` is created as well, you can use `dataset.VideoDatasetFast` to leverage the "fast" version, though it's not fast enough to let me use it. So you can prevent splitting by commenting out `split_video` to save some disk space).
 
-#### Install TensorBoard
+#### Install dependencies
 
-Install TensorBoard. It's *mandatory*, since it's such amazing. `tqdm`, `pyav` is required as well.
+Install TensorBoard. It's *mandatory*, since it's such amazing. `tqdm`, `pyav` is required as well. Newest `torch` and `torchvision` is also required.
 
 ```shell
 pip install tensorboard
@@ -273,7 +275,7 @@ Then you can access it by `http://your_host:8965` from remote.
   </tbody>
 </table>
 
-<!-- Export this table using `print(df_sorted.to_html())`), greet formating tool pandas! (pandas: ??? -->
+<!-- Export this table using `print(df_sorted.to_html())`), greet formatting tool pandas! (pandas: ??? -->
 
 Two streams model itself is an ensemble including RGB(`resnet18_word_bag`) and L=5 optical flow model (`resnet18_flat_L5`). `cnn_lstm_1` is a CNN+LSTM example. `r2plus1d_18_1` is a 3d-CNN implementation brought from `torchvision`.
 
@@ -311,7 +313,7 @@ Most programs in that terminal should work (such as pytorch pretraining model do
 
 ### Frozen code
 
-Modifying any "frozen" code which is used by at least an `exp` is not recommended. You should add a new code in `fronzen_*.py` file and add a new experiment file in `exps`.
+Modifying any "frozen" code which is used by at least an `exp` is not recommended. You should add a new code in `frozen_*.py` file and add a new experiment file in `exps`.
 
 Top commend should give summary of this experiment and bottom comment should give a quick result summary.
 

@@ -1,7 +1,5 @@
 '''
-4 GPU version. Increase batch-size, decrease useless high lr training time.
-
-For detailed comparison, `diff` is suggested.
+test_word_bag_3 with decreased memory overload
 '''
 import sys
 
@@ -10,8 +8,8 @@ from datetime import datetime
 name = Path(__file__).stem
 
 args_list = [
-    '--train', 'train_video_dataset_1_rgb_fast', 'transform_train_1', 'val2vl', 'video_random_3',
-    '--test', 'test_video_dataset_1_rgb_fast', 'transform_test_1', 'val2vl', 'video_uniform_3',
+    '--train', 'train_video_dataset_1_rgb_fast', 'transform_train_1', 'val2vl', 'video_random_2',
+    '--test', 'test_video_dataset_1_rgb_fast', 'transform_test_1', 'val2vl', 'video_uniform_2',
     '--model', 'resnet18_word_bag',
     '--optimizer', 'sgd_1',
     '--scheduler', 'scheduler_4',

@@ -86,6 +86,8 @@ if count_gpu > 1:
     else:
         print(f"use {count_gpu} GPUs to train.")
         model = nn.DataParallel(model)
+else:
+    print("Use 1 thread to train")
 
 optimizer = get_optimizer(args.optimizer, model.parameters())
 
